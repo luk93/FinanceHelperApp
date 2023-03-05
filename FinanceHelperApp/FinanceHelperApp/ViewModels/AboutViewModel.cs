@@ -14,7 +14,7 @@ namespace FinanceHelperApp.ViewModels
     {
         private string _detectedText = string.Empty;
         private string _filePath = string.Empty;
-        private MediaFile _mediaFile;
+        private MediaFile _mediaFile = null;
 
         private readonly ITesseractApi _tesseract;
         private readonly IMediaPicker _mediaPicker;
@@ -38,6 +38,18 @@ namespace FinanceHelperApp.ViewModels
             set
             {
                 SetProperty(ref _filePath, value);
+            }
+        }
+
+        public MediaFile MediaFile
+        {
+            get
+            {
+                return _mediaFile;
+            }
+            set
+            {
+                SetProperty(ref _mediaFile, value);
             }
         }
         public ICommand DetectTextCommand { get; }
@@ -68,14 +80,14 @@ namespace FinanceHelperApp.ViewModels
         private async Task LoadImageAsync()
         {
             var result = await _mediaPicker.SelectPhotoAsync(new CameraMediaStorageOptions());
-            _mediaFile = result;
+            MediaFile = result;
             FilePath = result.Path;
         }
 
         private async Task TakePhotoAsync()
         {
             var result = await _mediaPicker.TakePhotoAsync(new CameraMediaStorageOptions());
-            _mediaFile = result;
+            MediaFile = result;
             FilePath = result.Path;
         }
         async Task GetText(MediaFile result)
