@@ -2,6 +2,7 @@
 using FinanceHelperApp.Views;
 using System;
 using Xamarin.Forms;
+using Xamarin.Forms.PlatformConfiguration;
 using Xamarin.Forms.Xaml;
 
 namespace FinanceHelperApp
@@ -19,6 +20,7 @@ namespace FinanceHelperApp
 
         protected override void OnStart()
         {
+            base.OnStart();
         }
 
         protected override void OnSleep()

@@ -12,21 +12,21 @@ namespace FinanceHelperApp.ViewModels
 {
     public class AboutViewModel : BaseViewModel
     {
-        private string _someText = string.Empty;
+        private string _detectedText = string.Empty;
         private string _filePath = string.Empty;
         private MediaFile _mediaFile;
 
         private readonly ITesseractApi _tesseract;
         private readonly IMediaPicker _mediaPicker;
-        public string SomeText
+        public string DetectedText
         {
             get
             {
-                return _someText;
+                return _detectedText;
             }
             set
             {
-                SetProperty(ref _someText, value);
+                SetProperty(ref _detectedText, value);
             }
         }
         public string FilePath
@@ -40,7 +40,9 @@ namespace FinanceHelperApp.ViewModels
                 SetProperty(ref _filePath, value);
             }
         }
-
+        public ICommand DetectTextCommand { get; }
+        public ICommand LoadImageCommand { get; }
+        public ICommand TakePhotoCommand { get; }
         public AboutViewModel()
         {
             try
@@ -54,61 +56,29 @@ namespace FinanceHelperApp.ViewModels
             }
 
             Title = "About";
-            SomeText = "Hello";
+            DetectedText = "Hello";
             //FilePath = "File Path";
-            SelectFileCommand = new Command(async () => FilePath = await LoadImageAsync());
-            DetectTextCommand = new Command(async () => await Recognise(_mediaFile));
+            LoadImageCommand = new Command(async () => await LoadImageAsync());
+            DetectTextCommand = new Command(async () => await GetText(_mediaFile));
+            TakePhotoCommand = new Command(async () => await TakePhotoAsync());
         }
 
-        public ICommand DetectTextCommand { get; }
-        public ICommand SelectFileCommand { get; }
-        private async Task<string> SelectFileAsync()
-        {
-            try
-            {
-                var fileResult = await FilePicker.PickAsync(new PickOptions
-                {
-                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                    {
-                        { DevicePlatform.iOS, new[] { "public.jpeg" } },
-                        { DevicePlatform.Android, new[] { "image/jpeg" } },
-                        { DevicePlatform.UWP, new[] { ".jgp" } }
-                    }),
-                    PickerTitle = "Wybierz plik jpg"
-                });
 
-                if (fileResult != null)
-                {
-                    // Plik został wybrany, zwracamy jego ścieżkę
-                    return fileResult.FullPath;
-                }
-                else
-                {
-                    // Użytkownik anulował wybór pliku
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Wystąpił błąd podczas wybierania pliku
-                await Application.Current.MainPage.DisplayAlert("Błąd", $"Wystąpił błąd podczas wybierania pliku: {ex.Message}", "OK");
-                return null;
-            }
-        }
-        private async Task<string> LoadImageAsync()
+      
+        private async Task LoadImageAsync()
         {
             var result = await _mediaPicker.SelectPhotoAsync(new CameraMediaStorageOptions());
             _mediaFile = result;
-            return result.Path;
-            //await Recognise(result);
+            FilePath = result.Path;
         }
 
-        private async Task GetPhotoAsync()
+        private async Task TakePhotoAsync()
         {
             var result = await _mediaPicker.TakePhotoAsync(new CameraMediaStorageOptions());
-            await Recognise(result);
+            _mediaFile = result;
+            FilePath = result.Path;
         }
-        async Task Recognise(MediaFile result)
+        async Task GetText(MediaFile result)
         {
             if (result.Source == null)
                 return;
@@ -132,7 +102,7 @@ namespace FinanceHelperApp.ViewModels
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        SomeText = _tesseract.Text;
+                        DetectedText = _tesseract.Text;
                         var words = _tesseract.Results(PageIteratorLevel.Word);
                         var symbols = _tesseract.Results(PageIteratorLevel.Symbol);
                         var blocks = _tesseract.Results(PageIteratorLevel.Block);
