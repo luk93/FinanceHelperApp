@@ -114,9 +114,18 @@ namespace FinanceHelperApp.ViewModels
                 return;
             if (!_tesseract.Initialized)
             {
-                var initialised = await _tesseract.Init("pol");
-                if (!initialised)
+                try
+                {
+                    var initialised = await _tesseract.Init("pol");
+                    if (!initialised)
+                        return;
+                }
+                catch (Exception ex)
+                {
+                    var msg = ex.Message;
+                    var stack = ex.StackTrace;
                     return;
+                }
             }
             _tesseract.SetImage(result.Source)
                 .ContinueWith((t) =>
