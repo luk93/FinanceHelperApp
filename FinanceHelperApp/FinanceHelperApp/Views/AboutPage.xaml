@@ -14,7 +14,7 @@
         <ResourceDictionary>
             <Color x:Key="Accent">#96d1ff</Color>
             <converters:NullToBooleanConverter x:Key="NullToBooleanConverter" />
-            <converters:NullToBooleanConverter x:Key="MediaFileToImageSourceConverter" />
+            <converters:MediaFileToImageSourceConverter x:Key="MediaFileToImageSourceConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -41,8 +41,8 @@
                         Command="{Binding TakePhotoCommand}"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="White" />
-                <Image  Source="icon_about"
-                        IsVisible="{Binding MediaFile, Converter={StaticResource NullToBooleanConverter}, ConverterParameter=Inverse}"/>
+                <Image  IsVisible="{Binding MediaFile, Converter={StaticResource NullToBooleanConverter}, ConverterParameter=Inverse}"  
+                        Source="{Binding MediaFile, Converter={StaticResource MediaFileToImageSourceConverter}}"/>
                 <Button Margin="0,10,0,0" Text="Detect Text"
                         Command="{Binding DetectTextCommand}"
                         BackgroundColor="{StaticResource Primary}"

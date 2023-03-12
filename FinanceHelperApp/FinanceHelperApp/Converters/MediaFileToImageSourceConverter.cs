@@ -16,11 +16,14 @@ namespace FinanceHelperApp.Converters
             MediaFile mediaFile = value as MediaFile;
             if (mediaFile != null)
             {
-                using (Stream stream = mediaFile.Source)
+                byte[] bytes = null;
+                using (var memoryStream = new MemoryStream())
                 {
-                    ImageSource imageSource = ImageSource.FromStream(() => stream);
-                    return imageSource;
+                    mediaFile.Source.CopyTo(memoryStream);
+                    bytes = memoryStream.ToArray();
                 }
+                ImageSource imageSource = ImageSource.FromStream(() => new MemoryStream(bytes));
+                return imageSource;
             }
             return null;
         }

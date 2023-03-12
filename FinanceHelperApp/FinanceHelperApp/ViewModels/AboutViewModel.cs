@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Tesseract;
@@ -26,7 +28,7 @@ namespace FinanceHelperApp.ViewModels
             }
             set
             {
-                SetProperty(ref _detectedText, value);
+                SetProperty(ref _detectedText, value, DetectedText);
             }
         }
         public string FilePath
@@ -37,7 +39,7 @@ namespace FinanceHelperApp.ViewModels
             }
             set
             {
-                SetProperty(ref _filePath, value);
+                SetProperty(ref _filePath, value, FilePath);
             }
         }
 
@@ -49,7 +51,7 @@ namespace FinanceHelperApp.ViewModels
             }
             set
             {
-                SetProperty(ref _mediaFile, value);
+                SetProperty(ref _mediaFile, value, "MediaFile");
             }
         }
         public ICommand DetectTextCommand { get; }
@@ -67,28 +69,51 @@ namespace FinanceHelperApp.ViewModels
                 FilePath = ex.Message;
             }
 
-            Title = "About";
-            DetectedText = "Hello";
-            //FilePath = "File Path";
+            Title = "Detect text in image";
+            DetectedText = "Detected Text";
+            FilePath = "File Path";
             LoadImageCommand = new Command(async () => await LoadImageAsync());
             DetectTextCommand = new Command(async () => await GetText(_mediaFile));
             TakePhotoCommand = new Command(async () => await TakePhotoAsync());
         }
 
-
-      
         private async Task LoadImageAsync()
         {
-            var result = await _mediaPicker.SelectPhotoAsync(new CameraMediaStorageOptions());
-            MediaFile = result;
-            FilePath = result.Path;
+            try
+            {
+                var result = await _mediaPicker.SelectPhotoAsync(new CameraMediaStorageOptions());
+                MediaFile = result;
+                FilePath = result.Path;
+            }
+            catch (TaskCanceledException ex)
+            {
+                // handle cancellation exception
+            }
         }
 
         private async Task TakePhotoAsync()
         {
-            var result = await _mediaPicker.TakePhotoAsync(new CameraMediaStorageOptions());
-            MediaFile = result;
-            FilePath = result.Path;
+            try
+            {
+                var result = await _mediaPicker.TakePhotoAsync(new CameraMediaStorageOptions()
+                {
+                    DefaultCamera = CameraDevice.Front,
+                    SaveMediaOnCapture = true,
+                    Name = string.Format("FinanceApp_{0}", DateTime.Now.ToString("yyMMddhhmmss")),
+                    MaxPixelDimension = 1024,
+                    PercentQuality = 85
+                });
+                MediaFile = result;
+                FilePath = result.Path;
+            }
+            catch (TaskCanceledException ex)
+            {
+                var stack = ex.StackTrace;
+                var msg = ex.Message;
+                var inner = ex.InnerException;
+                var t = ex.Task.ToString();
+                var x = ex.TargetSite.ToString();
+            }
         }
         async Task GetText(MediaFile result)
         {
@@ -122,7 +147,6 @@ namespace FinanceHelperApp.ViewModels
                         var lines = _tesseract.Results(PageIteratorLevel.Textline);
                     });
                 });
-
         }
     }
 }
